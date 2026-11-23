@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Легкість — меню під бюджет</title>
+<meta name="theme-color" content="#e8553d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Легкість">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: тёплый, бытовой, ободряющий — как помощник на кухне
+   IDEA: карточка-магнит на холодильнике с планом недели
+   PICTURE: сама анкета и готовый план — крупно, в один столбец
+   COLOUR and TYPE: солнечно-жёлтое поле, томатный акцент, зелень для овощей; Unbounded + Manrope
+   LAYOUT: одна колонка до 480px, кнопка действия прижата к низу */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffd96a,#1d1a12);--card:light-dark(#fffdf6,#2a2619);--ink:light-dark(#22201a,#f6f1e2);
+--mut:light-dark(#6d675a,#b8b09c);--line:light-dark(#ece4cf,#3d3726);--acc:#e8553d;--acc2:light-dark(#fff0e6,#3a2a20);
+--grn:light-dark(#2f8a4c,#6fd08f);--chip:light-dark(#f7f1e1,#332e20)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Manrope,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--card);display:flex;flex-direction:column;box-shadow:0 0 0 1px var(--line),0 30px 80px #0002}
+@media(min-width:560px){.app{margin:24px auto;min-height:calc(100vh - 48px);border-radius:28px;overflow:hidden}}
+.top{display:flex;align-items:center;gap:12px;padding:16px 18px 8px}
+.back{width:44px;height:44px;border-radius:50%;border:0;background:var(--chip);font-size:20px;flex:none}
+.brand{font:700 15px Unbounded,sans-serif;flex:1;text-align:center;margin-right:56px}
+.prog{height:5px;background:var(--line);border-radius:3px;margin:0 18px}.prog i{display:block;height:100%;background:var(--acc);border-radius:3px;transition:width .3s}
+main{flex:1;padding:18px 18px 8px;overflow-y:auto}
+h1{font:700 clamp(24px,6vw,30px)/1.1 Unbounded,sans-serif;margin:6px 0 8px;text-wrap:balance}
+.sub{color:var(--mut);margin:0 0 18px;font-size:15px}
+.foot{padding:12px 18px 20px;background:var(--card)}
+.cta{width:100%;min-height:56px;border:0;border-radius:18px;background:var(--acc);color:#fff;font-weight:800;font-size:17px;box-shadow:0 6px 0 #b83a26}
+.cta:active{transform:translateY(3px);box-shadow:0 3px 0 #b83a26}.cta:disabled{opacity:.45;box-shadow:none}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tile{border:2px solid var(--line);background:var(--card);border-radius:18px;padding:12px 8px;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;font-weight:700;font-size:14px;position:relative}
+.tile small{font-weight:500;color:var(--mut);font-size:12.5px;line-height:1.25}
+.tile.on{border-color:var(--acc);background:var(--acc2)}
+.tile.on::after{content:"✓";position:absolute;top:6px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;line-height:20px}
+.logo{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;font:700 15px Unbounded,sans-serif}
+.row{display:flex;align-items:center;gap:12px;border:2px solid var(--line);border-radius:18px;padding:12px 14px;margin-bottom:10px;background:var(--card);width:100%;text-align:left}
+.row.on{border-color:var(--acc);background:var(--acc2)}
+.row b{display:block}.row small{color:var(--mut);font-size:13px}.row .grow{flex:1}
+.box{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:#fff;font-size:14px}
+.row.on .box{background:var(--acc);border-color:var(--acc)}
+.dot{width:40px;height:40px;border-radius:12px;flex:none;display:grid;place-items:center;font:700 14px Unbounded,sans-serif;color:#fff}
+.step{display:flex;align-items:center;gap:8px}.step button{width:44px;height:44px;border-radius:50%;border:0;background:var(--chip);font-size:22px;font-weight:700}
+.step button.p{background:var(--ink);color:var(--card)}.step output{width:28px;text-align:center;font-weight:800;font-size:18px}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.days button{border:2px solid var(--line);background:var(--card);border-radius:14px;min-height:72px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.days button i{width:18px;height:18px;border-radius:50%;border:2px solid var(--line)}
+.days button.on{border-color:var(--acc);background:var(--acc2)}.days button.on i{background:var(--acc);border-color:var(--acc)}
+.note{text-align:center;color:var(--mut);font-size:14px;margin-top:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;min-height:44px;font-weight:600;font-size:14.5px}
+.chip.on{border-color:var(--acc);background:var(--acc2);text-decoration:line-through;text-decoration-color:var(--acc)}
+.big{font:700 clamp(44px,13vw,60px)/1 Unbounded,sans-serif;text-align:center;margin:18px 0 6px;white-space:nowrap}
+.big button{border:0;background:none;font-size:22px;vertical-align:middle;color:var(--mut)}
+.big input{font:inherit;width:5ch;text-align:center;border:0;border-bottom:3px solid var(--acc);background:none;color:inherit}
+input[type=range]{width:100%;accent-color:var(--acc);height:44px}
+.rng{display:flex;justify-content:space-between;color:var(--mut);font-size:13px;margin-top:-6px}
+.hint{background:var(--chip);border-radius:16px;padding:14px;margin:16px 0;font-size:14px}
+.hint b{display:block;margin-bottom:4px}.hint.bad{background:#e8553d22}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;text-align:center}
+.stats div{background:var(--chip);border-radius:14px;padding:10px 4px}.stats b{display:block;font-size:18px;white-space:nowrap}.stats small{color:var(--mut);font-size:12.5px}
+.load{text-align:center;padding-top:40px}
+.orb{width:110px;height:110px;margin:0 auto 18px;border-radius:32px;background:var(--acc);display:grid;place-items:center;color:#fff;font:700 22px Unbounded,sans-serif;animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-4deg)}}
+@media(prefers-reduced-motion:reduce){.orb{animation:none}}
+.load ul{list-style:none;padding:0;display:inline-block;text-align:left;margin:18px 0}
+.load li{padding:6px 0;color:var(--mut);display:flex;gap:10px;align-items:center}.load li i{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:none}
+.load li.ok{color:var(--ink)}.load li.ok i{background:var(--acc);border-color:var(--acc)}
+.sum{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;margin-bottom:14px}
+.sum>*{background:var(--chip);border-radius:18px;padding:14px;border:0;text-align:left}
+.sum small{color:var(--mut);font-size:12.5px;display:block}.sum b{font:700 24px Unbounded,sans-serif;white-space:nowrap}
+.bar{height:8px;background:var(--line);border-radius:4px;margin:8px 0}.bar i{display:block;height:100%;border-radius:4px;background:var(--acc)}
+.save{display:inline-block;background:var(--grn);color:var(--card);border-radius:8px;padding:2px 8px;font-size:12.5px;font-weight:800}
+.dayh{font:700 14px Unbounded,sans-serif;margin:18px 0 8px;display:flex;justify-content:space-between}.dayh span{font:600 13px Manrope;color:var(--mut)}
+.meal{display:flex;gap:12px;align-items:center;padding:10px;border-radius:16px;background:var(--card);border:2px solid var(--line);margin-bottom:8px}
+.meal .pic{width:56px;height:56px;border-radius:14px;flex:none;display:grid;place-items:center;color:#fff;font:700 18px Unbounded}
+.meal .t{flex:1;border:0;background:none;text-align:left;padding:0}
+.meal .t small{display:block;color:var(--mut);font-size:12.5px;text-transform:uppercase;letter-spacing:.02em;font-weight:700}
+.meal .t b{display:block;line-height:1.25}.meal .t span{color:var(--mut);font-size:13px}
+.swap{border:0;background:var(--chip);border-radius:12px;width:44px;height:44px;font-size:18px;flex:none}
+.hero{height:150px;border-radius:22px;display:grid;place-items:center;color:#fff;font:700 48px Unbounded;margin-bottom:14px}
+.macro{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;text-align:center;margin:12px 0}
+.macro div{background:var(--chip);border-radius:12px;padding:8px 2px}.macro b{display:block}.macro small{color:var(--mut);font-size:12px}
+.tabs{display:flex;gap:6px;background:var(--chip);border-radius:14px;padding:4px;margin:14px 0}
+.tabs button{flex:1;border:0;background:none;border-radius:10px;min-height:44px;font-weight:700}.tabs button.on{background:var(--card);box-shadow:0 1px 4px #0002}
+.ing{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.ing b{white-space:nowrap}
+ol.st{padding-left:0;list-style:none;counter-reset:s}ol.st li{counter-increment:s;display:flex;gap:12px;margin-bottom:14px}
+ol.st li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}
+.cat{font-weight:800;color:var(--mut);font-size:13px;margin:18px 0 6px}
+.li{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line);width:100%;border-left:0;border-right:0;border-top:0;background:none;text-align:left}
+.li .grow{flex:1}.li small{color:var(--mut);display:block;font-size:13px}.li.done .grow{text-decoration:line-through;opacity:.5}
+.li em{font-style:normal;font-weight:700;white-space:nowrap}
+.row2{display:flex;gap:10px}.ghost{flex:1;min-height:48px;border-radius:14px;border:2px solid var(--line);background:var(--card);font-weight:700}
+.tiny{font-size:12.5px;color:var(--mut);text-align:center;margin:14px 0 0}
+.kc{display:flex;gap:10px;align-items:center;margin-top:12px}.kc input{flex:1;min-height:48px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:inherit;font:700 18px Manrope;padding:0 14px}
+.ph{position:relative;overflow:hidden}.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.thumb:empty{display:none}.thumb{width:36px;height:36px;border-radius:10px;background:var(--chip);flex:none}.ing{align-items:center}.ing .grow{flex:1}
+.top{padding-top:max(16px,env(safe-area-inset-top))}.foot{padding-bottom:max(20px,env(safe-area-inset-bottom))}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="top"><button class="back" id="back" aria-label="Назад">‹</button><div class="brand">Легкість</div></div>
+  <div class="prog"><i id="prog"></i></div>
+  <main id="main"></main>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+{
+/* ---------- Ціни ----------
+   База: середні споживчі ціни Держстату за жовтень 2026 (index.minfin.com.ua, оновлено 15.11.2026).
+   Позиції без даних Держстату позначені est:1 — це оцінка.
+   Поправка мережі: порівняння цін на хліб, гречку, яйця та олію в АТБ, Сільпо, Novus, Ашан (10.06.2026). */
+const PRICE_DATE="жовтень 2026";
+const STORES=[["atb","АТБ","#1d4fa3",.93],["silpo","Сільпо","#f28c00",1.02],["novus","Novus","#00953b",1.01],["auchan","Ашан","#e1261c",1.05],["other","Інший магазин або ринок","#6d675a",1]];
+const CATS={meat:"М'ясо та риба",dairy:"Молочне та яйця",veg:"Овочі та фрукти",groc:"Крупи та бакалія"};
+// id: [назва, грн/кг (або л), категорія, алергени, тип, оцінка?, г у 1 шт]
+const I={
+chicken:["Куряче філе",220.41,"meat",[],"meat"],mince:["Фарш свинний",225,"meat",[],"meat",1],turkey:["Філе індички",300,"meat",[],"meat",1],
+pork:["Свинина",233.79,"meat",[],"meat"],hake:["Хек морожений",278.65,"meat",["fish"],"fish"],mackerel:["Скумбрія морожена",278.65,"meat",["fish"],"fish"],
+sausage:["Сосиски",231.79,"meat",["soy"],"meat",1],liver:["Куряча печінка",130,"meat",[],"meat",1],
+egg:["Яйця",105.85,"dairy",["egg"],"egg",0,55],milk:["Молоко 2,5%",53.99,"dairy",["milk"],"dairy"],kefir:["Кефір",58,"dairy",["milk"],"dairy",1],
+tvorog:["Сир кисломолочний",257.87,"dairy",["milk"],"dairy"],yogurt:["Йогурт натуральний",110,"dairy",["milk"],"dairy",1],cheese:["Сир твердий",420,"dairy",["milk"],"dairy",1],
+butter:["Масло вершкове",551.3,"dairy",["milk"],"dairy"],smetana:["Сметана 15%",153.92,"dairy",["milk"],"dairy"],
+potato:["Картопля",17.15,"veg",[],"plant"],onion:["Цибуля",19.9,"veg",[],"plant"],carrot:["Морква",18.29,"veg",[],"plant"],cabbage:["Капуста",21.06,"veg",[],"plant"],
+beet:["Буряк",17.04,"veg",[],"plant"],tomato:["Помідори",110,"veg",[],"plant",1],cucumber:["Огірки",100,"veg",[],"plant",1],pepper:["Перець болгарський",140,"veg",[],"plant",1],
+zucchini:["Кабачки",55,"veg",[],"plant",1],pumpkin:["Гарбуз",30,"veg",[],"plant",1],mushroom:["Печериці",140,"veg",[],"plant",1],garlic:["Часник",170,"veg",[],"plant",1],
+greens:["Зелень",240,"veg",[],"plant",1],apple:["Яблука",35.61,"veg",[],"plant"],banana:["Банани",70,"veg",[],"plant",1],berries:["Ягоди морожені",200,"veg",[],"plant",1],
+buckwheat:["Гречка",88.06,"groc",[],"plant"],rice:["Рис",60.6,"groc",[],"plant"],oats:["Вівсяні пластівці",55,"groc",["gluten"],"plant",1],pasta:["Макарони",42.81,"groc",["gluten"],"plant"],
+flour:["Борошно",23.65,"groc",["gluten"],"plant"],bread:["Хліб житній",58.82,"groc",["gluten"],"plant"],oil:["Олія соняшникова",102.48,"groc",[],"plant"],
+sugar:["Цукор",35.68,"groc",[],"plant"],honey:["Мед",280,"groc",[],"plant",1],lentil:["Сочевиця",90,"groc",[],"plant",1],beans:["Квасоля",95,"groc",[],"plant",1],
+tomatopaste:["Томатна паста",120,"groc",[],"plant",1],bulgur:["Булгур",85,"groc",["gluten"],"plant",1]};
+const COL=["#e8553d","#f2a33a","#2f8a4c","#c2410c","#7c3aed","#0e7490","#b45309","#be123c"];
+// [назва, прийоми, техніка, стиль, хв, ккал, б, ж, в, {інгредієнти г/порцію}, [кроки], id фото]
+const R=[
+["Сирники з ягідним соусом",["b"],["stove"],["fast","family"],20,410,24,16,40,{tvorog:150,egg:25,flour:25,sugar:12,berries:50,oil:8},["Змішай сир, яйце, цукор і борошно до м'якого тіста.","Сформуй сирники, обваляй у борошні.","Смаж на середньому вогні по 3–4 хвилини з кожного боку.","Ягоди прогрій з ложкою цукру — це соус."],"syrnyky"],
+["Вівсянка з бананом і медом",["b"],["stove"],["fast","light"],10,360,11,7,62,{oats:60,milk:200,banana:80,honey:10},["Залий пластівці молоком, вари 5 хвилин на слабкому вогні.","Додай нарізаний банан і мед."],"vivsianka"],
+["Омлет з помідорами та сиром",["b","d"],["stove"],["fast","onepan"],12,340,21,25,6,{egg:110,milk:40,tomato:80,cheese:20,oil:5},["Збий яйця з молоком і дрібкою солі.","Обсмаж помідори 2 хвилини, залий яйцями.","Посип сиром, накрий кришкою на 4 хвилини."],"omlet"],
+["Гречка з молоком",["b"],["stove"],["fast","family","budget"],15,330,13,8,52,{buckwheat:60,milk:200,butter:5},["Звари гречку до м'якості.","Залий гарячим молоком, додай масло."],"hrechka-moloko"],
+["Бутерброди з яйцем і огірком",["b","s"],[],["fast","light"],8,320,15,14,32,{bread:70,egg:55,cucumber:60,smetana:15},["Відвари яйце 9 хвилин, наріж кружальцями.","Хліб змасти сметаною, виклади огірок і яйце."],"buterbrody"],
+["Ліниві вареники",["b"],["stove"],["family"],25,430,23,10,60,{tvorog:150,flour:45,egg:20,smetana:30},["Змішай сир, яйце, борошно і дрібку солі.","Розкачай ковбаску, наріж шматочками.","Вари в окропі 3 хвилини після спливання, подавай зі сметаною."],"linyvi-vareniki"],
+["Йогурт з вівсянкою та яблуком",["b","s"],[],["fast","light"],5,280,12,5,45,{yogurt:180,oats:30,apple:100,honey:8},["Наріж яблуко.","Виклади шарами йогурт, пластівці та яблуко, полий медом."],"yogurt"],
+["Борщ український",["l","d"],["stove"],["classic","family","prep","budget"],80,320,14,13,36,{pork:70,beet:90,cabbage:80,potato:90,carrot:30,onion:30,tomatopaste:12,smetana:20,oil:6,garlic:4},["Звари бульйон зі свинини, 50 хвилин.","Додай картоплю та капусту.","Обсмаж цибулю, моркву й буряк з томатною пастою, переклади в суп.","Вари 10 хвилин, додай часник. Подавай зі сметаною."],"borshch"],
+["Котлети з гречкою",["l","d"],["stove"],["classic","family","prep"],40,520,30,24,44,{mince:120,onion:20,egg:10,bread:15,buckwheat:60,oil:8},["Змішай фарш, терту цибулю, яйце та розмочений хліб.","Обсмаж котлети по 5 хвилин з кожного боку, потім потуши 10 хвилин під кришкою.","Відвари гречку."],"kotlety-hrechka"],
+["Куряче філе з рисом і овочами",["l","d"],["stove"],["light","protein","fast"],25,450,36,8,55,{chicken:130,rice:60,pepper:50,carrot:40,oil:6},["Наріж філе й обсмаж 6 хвилин.","Додай овочі соломкою, туши 5 хвилин.","Подавай з відвареним рисом."],"kuriache-file-rys"],
+["Запечена курка з гарбузом",["d"],["oven"],["light","protein","onepan"],45,390,34,12,30,{chicken:140,pumpkin:180,onion:30,oil:8},["Наріж гарбуз і цибулю, змішай з олією та сіллю.","Виклади філе зверху, запікай 35 хвилин за 190 °C."],"kurka-harbuz"],
+["Хек, запечений з картоплею",["l","d"],["oven"],["light","classic"],45,370,28,8,42,{hake:150,potato:200,onion:30,oil:8,greens:5},["Наріж картоплю часточками, запікай 15 хвилин за 200 °C.","Додай рибу та цибулю, запікай ще 20 хвилин."],"khek-kartoplia"],
+["Рибні котлети з пюре",["l","d"],["stove"],["family","classic"],40,450,27,14,50,{hake:140,onion:20,egg:10,bread:15,potato:220,milk:40,butter:8,oil:6},["Подрібни рибу з цибулею, додай яйце та хліб.","Обсмаж котлети по 4 хвилини з кожного боку.","Звари картоплю, розімни з молоком і маслом."],"rybni-kotlety"],
+["Макарони по-флотськи",["l","d"],["stove"],["fast","family","budget","onepan"],25,560,27,22,62,{pasta:90,mince:100,onion:30,oil:5},["Відвари макарони.","Обсмаж фарш з цибулею 10 хвилин.","Змішай з макаронами."],"makarony-flotski"],
+["Плов з куркою",["l","d"],["stove","multi"],["classic","family","prep"],60,520,28,15,66,{chicken:110,rice:80,carrot:60,onion:40,oil:12,garlic:5},["Обсмаж курку, цибулю та моркву соломкою.","Додай рис, залий водою на 1,5 см вище.","Встав часник, томи під кришкою 25 хвилин."],"plov"],
+["Фарширований перець з індичкою",["d"],["stove"],["family","prep"],50,380,27,11,38,{turkey:100,rice:30,pepper:150,carrot:30,tomatopaste:12,smetana:15},["Змішай фарш з індички з напівготовим рисом.","Наповни перці.","Туши 35 хвилин у соусі з томатної пасти та сметани."],"farshyrovanyi-perets"],
+["Шакшука з овочами",["b","d"],["stove"],["fast","onepan","light"],25,320,17,20,18,{egg:110,tomato:200,pepper:60,onion:30,oil:8,bread:30},["Обсмаж цибулю та перець, додай помідори, туши 8 хвилин.","Зроби заглибини, вбий яйця.","Готуй під кришкою 5 хвилин."],"shakshuka"],
+["Суп із сочевицею",["l"],["stove"],["light","budget","prep"],35,300,16,6,46,{lentil:60,carrot:40,onion:30,potato:80,oil:6,tomatopaste:10},["Обсмаж цибулю та моркву з томатною пастою.","Додай сочевицю та картоплю, залий водою.","Вари 25 хвилин."],"sup-sochevytsia"],
+["Тушкована капуста з сосисками",["l","d"],["stove"],["budget","classic","onepan"],35,410,15,28,20,{cabbage:250,sausage:100,carrot:30,onion:30,tomatopaste:10,oil:8},["Обсмаж цибулю та моркву.","Додай нашатковану капусту й пасту, туши 20 хвилин.","Додай нарізані сосиски на 5 хвилин."],"kapusta-sosysky"],
+["Куряча печінка з пюре",["l","d"],["stove"],["budget","protein","classic"],30,420,28,15,40,{liver:130,onion:40,smetana:30,potato:200,milk:40,oil:6},["Обсмаж цибулю, додай печінку на 5 хвилин.","Влий сметану, туши 5 хвилин.","Подавай з пюре."],"pechinka-piure"],
+["Квасоля в томатному соусі",["l","d"],["stove"],["budget","onepan"],25,380,17,9,56,{beans:80,onion:40,carrot:30,tomatopaste:20,oil:8,bread:40,greens:5},["Замочи квасолю на ніч і вари 50 хвилин — або візьми консервовану.","Обсмаж цибулю та моркву з пастою.","Змішай з квасолею, туши 10 хвилин."],"kvasolia"],
+["Кабачки, тушковані з куркою",["d"],["stove","multi"],["light","protein","onepan"],30,300,30,10,16,{chicken:120,zucchini:200,tomato:80,onion:30,oil:6},["Обсмаж курку шматочками.","Додай цибулю, кабачки та помідори.","Туши 15 хвилин."],"kabachky-kurka"],
+["Скумбрія в духовці з овочами",["d"],["oven"],["light","protein"],35,460,28,30,14,{mackerel:150,pepper:70,zucchini:100,oil:5,greens:5},["Наріж овочі, виклади на деко.","Зверху рибу, посоли.","Запікай 25 хвилин за 200 °C."],"skumbriia"],
+["Булгур з овочами",["l","d"],["stove"],["fast","light"],20,340,10,9,56,{bulgur:70,pepper:60,zucchini:80,onion:30,oil:8,greens:5},["Обсмаж овочі 6 хвилин.","Додай булгур і воду 1:2, вари 12 хвилин."],"bulgur"],
+["Вареники з картоплею",["l"],["stove"],["family","prep","budget"],70,480,12,12,80,{flour:100,potato:150,onion:30,oil:10,smetana:20},["Заміси тісто з борошна, води й дрібки солі.","Звари картоплю, розімни зі смаженою цибулею.","Зліпи вареники, вари 5 хвилин після спливання."],"vareniki-kartoplia"],
+["Сирна запіканка",["b","s"],["oven"],["family","prep"],45,350,22,12,38,{tvorog:150,egg:30,smetana:20,sugar:15,flour:15},["Змішай сир, яйце, цукор, сметану та борошно.","Запікай 35 хвилин за 180 °C."],"zapikanka"],
+["Яблука, запечені з медом",["s"],["oven","micro"],["light","fast"],20,170,1,1,40,{apple:200,honey:12},["Виріж серцевину, наповни медом.","Запікай 15 хвилин за 190 °C або 5 хвилин у мікрохвильовці."],"yabluka-med"],
+["Кефір з бананом",["s"],["blender"],["fast","light"],5,220,9,3,38,{kefir:200,banana:80},["Збий кефір з бананом у блендері."],"kefir-banan"],
+["Морквяні оладки",["s","b"],["stove"],["budget","family"],25,310,9,12,40,{carrot:120,egg:30,flour:30,kefir:50,oil:10,sugar:8},["Натри моркву, змішай з яйцем, кефіром і борошном.","Смаж оладки по 3 хвилини з кожного боку."],"oladky-morkva"],
+["Овочевий салат зі сметаною",["s"],[],["fast","light"],10,140,3,10,9,{tomato:120,cucumber:120,greens:5,smetana:25},["Наріж овочі та зелень, заправ сметаною."],"salat"],
+["Ліниві голубці",["d"],["stove","multi","oven"],["family","prep","classic"],50,440,24,22,34,{mince:100,cabbage:120,rice:30,onion:20,carrot:20,tomatopaste:12,smetana:20},["Змішай фарш, рис і дрібно нарізану капусту.","Сформуй котлети, обсмаж.","Туши 25 хвилин у соусі з пасти та сметани."],"holubtsi"],
+["Рисова каша з гарбузом",["b"],["stove","multi"],["family","budget"],30,320,8,7,56,{rice:50,pumpkin:120,milk:180,sugar:10,butter:5},["Звари гарбуз кубиками у воді 10 хвилин.","Додай рис і молоко, вари 20 хвилин."],"kasha-harbuz"],
+];
+const MEALS={b:"Сніданок",l:"Обід",d:"Вечеря",s:"Перекус"};
+const DAYS=["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
+const DAYF=["Понеділок","Вівторок","Середа","Четвер","П'ятниця","Субота","Неділя"];
+const APPL=[["stove","Плита"],["oven","Духовка"],["multi","Мультиварка"],["micro","Мікрохвильовка"],["blender","Блендер"]];
+const DIETS=[["any","Без обмежень","їм усе"],["veg","Вегетаріанське","без м'яса й риби"],["fish","З рибою, без м'яса","рибу можна"],["protein","Більше білка","м'ясо, сир, яйця"],["light","Легше","до 420 ккал"],["budget","Економно","найдешевші страви"]];
+const STYLES=[["fast","Швидко і просто","до 25 хвилин"],["onepan","Одна пательня","менше посуду"],["prep","Готую наперед","на 2–3 дні"],["family","Улюблене родиною","діти їдять без умовлянь"],["classic","Домашня класика","як у мами"],["light","Свіже й легке","більше овочів"]];
+const ALLER=[["nuts","Горіхи"],["gluten","Глютен"],["egg","Яйця"],["milk","Молоко"],["fish","Риба"],["soy","Соя"]];
+const DISLIKE=["mushroom","liver","pork","hake","mackerel","beet","cabbage","pumpkin","zucchini","pepper","lentil","beans","tvorog","kefir","sausage","bulgur","greens","garlic","onion","turkey"];
+
+/* ---------- Стан ---------- */
+const def={store:null,ad:2,kid:1,meals:["b","l","d"],days:[0,1,2,3,4],ap:["stove","oven"],diet:"any",style:["fast","family"],cal:false,kcal:2000,al:[],dis:[],budget:null,plan:null,checked:{}};
+let S;try{S=Object.assign({},def,JSON.parse(localStorage.getItem("legk-ua")||"{}"))}catch(e){S={...def}}
+const save=()=>{try{localStorage.setItem("legk-ua",JSON.stringify(S))}catch(e){}};
+const STEPS=["store","who","meals","days","kitchen","diet","style","cal","aller","dislike","budget"];
+let view=S.plan?"plan":"store",recipe=null,tab="ing",rport=null;
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("uk-UA").replace(/\s/g," ");
+const num=n=>n.toLocaleString("uk-UA");
+const K=()=>(STORES.find(s=>s[0]===S.store)||[0,0,0,1])[3];
+const portions=()=>S.ad+S.kid*0.7;
+/* фото: www/img/recipes/<id>.jpg та www/img/products/<id>.jpg; якщо файлу немає — лишається ілюстрація */
+const ph=(kind,id)=>`<img src="img/${kind}/${id}.jpg" alt="" loading="lazy" onerror="this.remove()">`;
+
+/* ---------- Підбір ---------- */
+function ok(r,m){
+  const [,ms,ap,,,k,,,,ing]=r;
+  if(!ms.includes(m))return false;
+  if(!ap.every(a=>S.ap.includes(a)))return false;
+  for(const id in ing){const x=I[id];
+    if(S.dis.includes(id))return false;
+    if(x[3].some(a=>S.al.includes(a)))return false;
+    if(S.diet==="veg"&&(x[4]==="meat"||x[4]==="fish"))return false;
+    if(S.diet==="fish"&&x[4]==="meat")return false;}
+  if(S.diet==="light"&&k>420&&m!=="s")return false;
+  return true;
+}
+const cost1=r=>Object.entries(r[9]).reduce((s,[id,g])=>s+g*I[id][1]/1000,0)*K();
+const costR=r=>cost1(r)*portions();
+function score(r){let s=Math.random()*2;
+  s+=r[3].filter(t=>S.style.includes(t)).length*1.5;
+  if(S.diet==="protein")s+=r[6]/12;if(S.diet==="budget")s-=cost1(r)/15;
+  if(S.cal){s-=Math.abs(r[5]-S.kcal/S.meals.length)/200}
+  return s}
+function pick(m,used,excl,day){
+  const c=R.map((r,i)=>[r,i]).filter(([r,i])=>ok(r,m)&&i!==excl&&(used[i]||0)<2&&!(day&&day.has(i)));
+  if(!c.length)return R.findIndex((r,i)=>ok(r,m)&&!(day&&day.has(i)));
+  c.sort((a,b)=>score(b[0])-score(a[0]));return c[0][1]}
+function build(){
+  const used={},p=[];
+  for(const d of [...S.days].sort()){const ds=new Set();for(const m of ["b","l","d","s"].filter(x=>S.meals.includes(x))){
+    const i=pick(m,used,-1,ds);if(i<0)continue;ds.add(i);used[i]=(used[i]||0)+1;p.push({d,m,r:i})}}
+  return p}
+const total=p=>p.reduce((s,x)=>s+costR(R[x.r]),0);
+function fit(p,b){
+  for(let n=0;n<80&&total(p)>b;n++){
+    let best=null,gain=0;
+    p.forEach(x=>{const cur=costR(R[x.r]);
+      R.forEach((r,i)=>{if(i!==x.r&&ok(r,x.m)&&p.filter(y=>y.r===i).length<3&&!p.some(y=>y.d===x.d&&y.r===i)){const g=cur-costR(r);if(g>gain){gain=g;best=[x,i]}}})});
+    if(!best)break;best[0].r=best[1]}
+  return p}
+const slotCosts=m=>R.filter(r=>ok(r,m)).map(costR).sort((a,b)=>a-b);
+function typical(){return S.days.length*S.meals.reduce((s,m)=>{const c=slotCosts(m);return s+(c.length?c[Math.floor(c.length/2)]:0)},0)}
+function cheapest(){return S.days.length*S.meals.reduce((s,m)=>{const c=slotCosts(m);return s+(c.length?c[0]:0)},0)}
+const plural=(n,a,b,c)=>{const t=n%10,h=n%100;return t===1&&h!==11?a:t>=2&&t<=4&&(h<10||h>=20)?b:c};
+
+/* ---------- Екрани ---------- */
+const tl=(on,inner,a)=>`<button class="tile${on?" on":""}" ${a}>${inner}</button>`;
+const rw=(on,inner,a)=>`<button class="row${on?" on":""}" ${a}>${inner}<span class="box">${on?"✓":""}</span></button>`;
+const tog=(arr,v)=>arr.includes(v)?arr.filter(x=>x!==v):[...arr,v];
+const ini=s=>s.replace(/[^А-ЯA-ZІЇЄҐа-яa-zіїєґ]/g,"").slice(0,1).toUpperCase();
+const V={
+store:()=>({h:`<h1>Де ти купуєш продукти?</h1><p class="sub">Ціни рахуємо з поправкою на мережу.</p>
+  <div class="grid g2">${STORES.map(s=>tl(S.store===s[0],`<span class="logo" style="background:${s[2]}">${ini(s[1])}</span>${s[1]}<small>${s[3]===1?"середні ціни":s[3]<1?`≈ на ${Math.round((1-s[3])*100)}% дешевше`:`≈ на ${Math.round((s[3]-1)*100)}% дорожче`}</small>`,`data-a="store" data-v="${s[0]}"`)).join("")}</div>
+  <p class="tiny">Базові ціни — Держстат, ${PRICE_DATE}. Поправки мереж — за порівнянням цін 10.06.2026.</p>`,
+  btn:"Обрати магазин",dis:!S.store}),
+who:()=>({h:`<h1>Хто їстиме?</h1><p class="sub">Кожну страву рахуємо одразу на всю родину.</p>
+  ${[["ad","Дорослі","повні порції"],["kid","Діти","дитячі порції, 0,7 від дорослої"]].map(([k,t,s],i)=>`<div class="row"><span class="dot" style="background:${COL[i]}">${t[0]}</span><span class="grow"><b>${t}</b><small>${s}</small></span>
+  <span class="step"><button data-a="cnt" data-k="${k}" data-d="-1" aria-label="Менше">−</button><output>${S[k]}</output><button class="p" data-a="cnt" data-k="${k}" data-d="1" aria-label="Більше">+</button></span></div>`).join("")}
+  <div class="row"><span class="grow"><b>Порцій на один прийом</b></span><b>${num(portions())}</b></div>`,dis:S.ad+S.kid<1}),
+meals:()=>({h:`<h1>Які прийоми їжі?</h1><p class="sub">Познач, що планувати щотижня.</p>
+  ${[["b","швидко й без клопоту"],["l","можна взяти з собою"],["d","головна страва дня"],["s","за бажанням"]].map(([k,s],i)=>rw(S.meals.includes(k),`<span class="dot" style="background:${COL[i]}">${MEALS[k][0]}</span><span class="grow"><b>${MEALS[k]}</b><small>${s}</small></span>`,`data-a="meal" data-v="${k}"`)).join("")}`,dis:!S.meals.length}),
+days:()=>({h:`<h1>У які дні готуєш?</h1><p class="sub">Сплануємо страви лише на обрані дні.</p>
+  <div class="days">${DAYS.map((d,i)=>`<button class="${S.days.includes(i)?"on":""}" data-a="day" data-v="${i}">${d}<i></i></button>`).join("")}</div>
+  <p class="note">Плануємо ${S.days.length} ${plural(S.days.length,"день","дні","днів")} цього тижня</p>`,dis:!S.days.length}),
+kitchen:()=>({h:`<h1>Що є на кухні?</h1><p class="sub">Запропонуємо лише рецепти, які вийде приготувати.</p>
+  <div class="grid g2">${APPL.map(([k,t],i)=>tl(S.ap.includes(k),`<span class="dot" style="background:${COL[i+2]}">${t[0]}</span>${t}`,`data-a="ap" data-v="${k}"`)).join("")}</div>`,dis:!S.ap.length}),
+diet:()=>({h:`<h1>Як ти харчуєшся?</h1><p class="sub">Обери один варіант.</p>
+  <div class="grid g2">${DIETS.map(([k,t,s])=>tl(S.diet===k,`${t}<small>${s}</small>`,`data-a="diet" data-v="${k}"`)).join("")}</div>`}),
+style:()=>({h:`<h1>Що тобі ближче?</h1><p class="sub">Можна кілька — такі страви піднімемо вище.</p>
+  <div class="grid g2">${STYLES.map(([k,t,s])=>tl(S.style.includes(k),`${t}<small>${s}</small>`,`data-a="style" data-v="${k}"`)).join("")}</div>`}),
+cal:()=>({h:`<h1>Рахуєш калорії?</h1><p class="sub">Можна й без цього — страви збалансовані.</p>
+  ${rw(!S.cal,`<span class="grow"><b>Ні, без підрахунків</b><small>Ситні страви, жодних цифр</small></span>`,`data-a="cal" data-v="0"`)}
+  ${rw(S.cal,`<span class="grow"><b>Так, маю ціль</b><small>Підберемо страви ближче до норми дорослого</small></span>`,`data-a="cal" data-v="1"`)}
+  ${S.cal?`<label class="kc"><span>ккал на день</span><input id="kcal" type="number" inputmode="numeric" min="1000" max="4000" step="50" value="${S.kcal}"></label>`:""}`}),
+aller:()=>({h:`<h1>Є алергії?</h1><p class="sub">Страви з цими продуктами виключимо повністю.</p>
+  <div class="grid g2">${tl(!S.al.length,`Немає алергій<small>нічого не виключаємо</small>`,`data-a="alnone"`)}${ALLER.map(([k,t])=>tl(S.al.includes(k),`${t}<small>виключити</small>`,`data-a="al" data-v="${k}"`)).join("")}</div>`}),
+dislike:()=>({h:`<h1>Чого не їси?</h1><p class="sub">Натисни на продукти, яких не має бути в меню.</p>
+  <div class="chips">${DISLIKE.map(k=>`<button class="chip${S.dis.includes(k)?" on":""}" data-a="dis" data-v="${k}">${I[k][0]}</button>`).join("")}</div>`,btn:S.dis.length?`Далі · виключено ${S.dis.length}`:"Пропустити"}),
+budget:()=>{
+  const min=cheapest(),typ=typical(),lo=Math.max(500,Math.floor(min/100)*100),hi=Math.ceil(typ*2.2/500)*500;
+  if(S.budget==null)S.budget=Math.ceil(typ*1.1/50)*50;
+  const b=S.budget,n=S.days.length*S.meals.length,need=Math.max(min,Math.min(typ,b));
+  return{h:`<h1>Твій бюджет на тиждень</h1><p class="sub">${S.ad} дор. · ${S.kid} діт. · ${S.meals.length} ${plural(S.meals.length,"прийом","прийоми","прийомів")} на день · ${S.days.length} ${plural(S.days.length,"день","дні","днів")}</p>
+  <div class="big"><input id="bud" type="number" inputmode="numeric" value="${b}" aria-label="Бюджет, грн"> ₴</div>
+  <input type="range" id="rng" min="${lo}" max="${hi}" step="50" value="${Math.min(Math.max(b,lo),hi)}" aria-label="Бюджет">
+  <div class="rng"><span>${fmt(lo)} ₴</span><span>${fmt(hi)} ₴</span></div>
+  ${b<min?`<div class="hint bad"><b>Замало</b>Навіть найдешевші страви під твої умови коштують близько ${fmt(min)} ₴. Збільш бюджет або прибери частину прийомів.</div>`
+   :`<div class="hint"><b>${b>=typ?"Із запасом":"Впритул, але вийде"}</b>${b>=typ?`Звичайне меню під твої умови — близько ${fmt(typ)} ₴. Залишиться приблизно ${fmt(b-typ)} ₴.`:`Замінимо дорогі страви на простіші, щоб вкластися.`}</div>`}
+  <div class="stats"><div><b>~${fmt(need)} ₴</b><small>вийде за тиждень</small></div><div><b>${fmt(need/n/portions())} ₴</b><small>за порцію</small></div><div><b>${fmt(n*portions())}</b><small>порцій</small></div></div>
+  <p class="tiny">Ціни: Держстат, ${PRICE_DATE}; частина позицій — оцінка. Олію, сіль і спеції рахуємо частково.</p>`,btn:"Зібрати мій план",dis:b<min}},
+load:()=>({h:`<div class="load"><div class="orb">Лг</div><h1 style="font-size:22px">Збираємо план…</h1>
+  <ul>${["Дивимось ціни магазину","Підбираємо рецепти","Рахуємо кошик","Звіряємо з бюджетом","Збираємо план"].map((t,i)=>`<li id="l${i}"><i></i>${t}</li>`).join("")}</ul></div>`,nofoot:1}),
+plan:()=>{
+  const p=S.plan,t=total(p),b=S.budget,sh=shop(p);
+  return{h:`<h1>Твій тиждень готовий!</h1>
+  <div class="sum"><div><small>Витрачено з ${fmt(b)} ₴</small><b>${fmt(t)} ₴</b><div class="bar"><i style="width:${Math.min(100,t/b*100)}%"></i></div>${b>t?`<span class="save">заощаджено ${fmt(b-t)} ₴</span>`:""}</div>
+  <button data-a="go" data-v="shop"><small>Список покупок</small><b>${sh.length}</b><small>${plural(sh.length,"позиція","позиції","позицій")} ›</small></button></div>
+  ${[...new Set(p.map(x=>x.d))].map(d=>{const its=p.filter(x=>x.d===d);return `<div class="dayh">${DAYF[d]}<span>${its.reduce((s,x)=>s+R[x.r][5],0)} ккал на дорослого</span></div>`+
+  its.map(x=>{const r=R[x.r],k=p.indexOf(x);return `<div class="meal"><span class="pic ph" style="background:${COL[x.r%COL.length]}">${ini(r[0])}${ph("recipes",r[11])}</span><button class="t" data-a="open" data-v="${k}"><small>${MEALS[x.m]}</small><b>${r[0]}</b><span>${r[4]} хв · ${r[5]} ккал · ${fmt(costR(r))} ₴</span></button><button class="swap" data-a="swap" data-v="${k}" aria-label="Замінити страву">⇄</button></div>`}).join("")}).join("")}
+  <div class="row2" style="margin-top:16px"><button class="ghost" data-a="regen">Перезібрати</button><button class="ghost" data-a="restart">Змінити відповіді</button></div>`,btn:"Список покупок"}},
+recipe:()=>{
+  const x=S.plan[recipe],r=R[x.r],n=rport??Math.round(portions()*10)/10;
+  return{h:`<div class="hero ph" style="background:${COL[x.r%COL.length]}">${ini(r[0])}${ph("recipes",r[11])}</div><h1 style="font-size:24px">${r[0]}</h1>
+  <p class="sub">${MEALS[x.m]} · ${r[4]} хв · ${fmt(cost1(r)*n)} ₴ на ${num(n)} порц.</p>
+  <div class="macro"><div><b>${r[5]}</b><small>ккал</small></div><div><b>${r[6]} г</b><small>білки</small></div><div><b>${r[7]} г</b><small>жири</small></div><div><b>${r[8]} г</b><small>вуглев.</small></div></div>
+  <div class="tabs"><button class="${tab==="ing"?"on":""}" data-a="tab" data-v="ing">Інгредієнти</button><button class="${tab==="st"?"on":""}" data-a="tab" data-v="st">Приготування</button></div>
+  ${tab==="ing"?`<div class="row"><span class="grow"><b>Порцій</b></span><span class="step"><button data-a="rp" data-d="-1" aria-label="Менше">−</button><output style="width:40px">${num(n)}</output><button class="p" data-a="rp" data-d="1" aria-label="Більше">+</button></span></div>
+  ${Object.entries(r[9]).map(([id,g])=>`<div class="ing"><span class="thumb ph">${ph("products",id)}</span><span class="grow">${I[id][0]}</span><b>${qty(id,g*n)}</b></div>`).join("")}`
+  :`<ol class="st">${r[10].map(s=>`<li>${s}</li>`).join("")}</ol>`}`,btn:"Замінити страву"}},
+shop:()=>{
+  const sh=shop(S.plan);const st=STORES.find(s=>s[0]===S.store);
+  return{h:`<h1>Список покупок</h1><p class="sub">${sh.length} ${plural(sh.length,"позиція","позиції","позицій")} · ${st?st[1]:""} · ${fmt(total(S.plan))} ₴. Натисни, щоб викреслити.</p>
+  ${Object.keys(CATS).map(c=>{const it=sh.filter(x=>I[x.id][2]===c);return it.length?`<div class="cat">${CATS[c]}</div>`+it.map(x=>`<button class="li${S.checked[x.id]?" done":""}" data-a="chk" data-v="${x.id}"><span class="box" style="${S.checked[x.id]?"background:var(--grn);border-color:var(--grn)":""}">${S.checked[x.id]?"✓":""}</span><span class="thumb ph">${ph("products",x.id)}</span><span class="grow">${I[x.id][0]}<small>${qty(x.id,x.g)}${I[x.id][5]?" · ціна орієнтовна":""}</small></span><em>${fmt(x.c)} ₴</em></button>`).join(""):""}).join("")}
+  <button class="ghost" style="width:100%;margin-top:16px" data-a="copy" id="cp">Скопіювати список</button>`,btn:"До плану"}}
+};
+function qty(id,g){const pc=I[id][6];if(pc)return Math.max(1,Math.round(g/pc))+" шт";
+  const l=["milk","kefir","oil"].includes(id);return g>=1000?num(Math.round(g/100)/10)+(l?" л":" кг"):Math.round(g/10)*10+(l?" мл":" г")}
+function shop(p){const m={};p.forEach(x=>{for(const[id,g]of Object.entries(R[x.r][9])){m[id]=(m[id]||0)+g*portions()}});
+  return Object.entries(m).map(([id,g])=>({id,g,c:g*I[id][1]/1000*K()})).sort((a,b)=>b.c-a.c)}
+
+/* ---------- Рендер ---------- */
+function render(){
+  const v=V[view]();$("main").innerHTML=v.h;$("main").scrollTop=0;
+  const si=STEPS.indexOf(view);$("prog").style.width=(si>=0?(si+1)/STEPS.length*100:100)+"%";
+  $("back").style.visibility=view==="store"||view==="load"||view==="plan"?"hidden":"visible";
+  $("foot").innerHTML=v.nofoot?"":`<button class="cta" data-a="next"${v.dis?" disabled":""}>${v.btn||"Далі"}</button>`;
+  const b=$("bud"),r=$("rng");
+  if(b){const set=x=>{S.budget=Math.max(0,Math.round(+x||0));save()};
+    r.oninput=()=>{set(r.value);b.value=S.budget;softBudget()};b.onchange=()=>{set(b.value);render()};}
+  const kc=$("kcal");if(kc)kc.onchange=()=>{S.kcal=Math.min(4000,Math.max(1000,+kc.value||2000));save()};
+}
+let tmr;function softBudget(){clearTimeout(tmr);tmr=setTimeout(()=>{const y=document.activeElement&&document.activeElement.id;render();if(y&&$(y))$(y).focus()},250)}
+function go(v){view=v;render()}
+function generate(){go("load");let i=0;const t=setInterval(()=>{const el=$("l"+i);if(el)el.classList.add("ok");i++;
+  if(i>5){clearInterval(t);S.plan=fit(build(),S.budget);S.checked={};save();go("plan")}},450)}
+function swap(k){const x=S.plan[k];const used={};S.plan.forEach(y=>used[y.r]=(used[y.r]||0)+1);
+  const i=pick(x.m,used,x.r,new Set(S.plan.filter(y=>y.d===x.d).map(y=>y.r)));if(i>=0)x.r=i;save()}
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-a]");if(!el)return;const a=el.dataset.a,v=el.dataset.v;
+  if(a==="next"){
+    if(view==="budget")return generate();
+    if(view==="plan")return go("shop");
+    if(view==="shop")return go("plan");
+    if(view==="recipe"){swap(recipe);return render()}
+    return go(STEPS[STEPS.indexOf(view)+1]);}
+  if(a==="store")S.store=v;
+  if(a==="cnt"){const k=el.dataset.k;S[k]=Math.max(0,Math.min(10,S[k]+ +el.dataset.d))}
+  if(a==="meal")S.meals=tog(S.meals,v);
+  if(a==="day")S.days=tog(S.days,+v);
+  if(a==="ap")S.ap=tog(S.ap,v);
+  if(a==="diet")S.diet=v;
+  if(a==="style")S.style=tog(S.style,v);
+  if(a==="cal")S.cal=v==="1";
+  if(a==="al")S.al=tog(S.al,v);if(a==="alnone")S.al=[];
+  if(a==="dis")S.dis=tog(S.dis,v);
+  if(a==="open"){recipe=+v;tab="ing";rport=null;return go("recipe")}
+  if(a==="swap")swap(+v);
+  if(a==="tab")tab=v;
+  if(a==="rp"){const n=rport??Math.round(portions()*10)/10;rport=Math.max(1,Math.round(n+ +el.dataset.d))}
+  if(a==="go")return go(v);
+  if(a==="regen")return generate();
+  if(a==="restart"){S.budget=null;return go("store")}
+  if(a==="chk")S.checked[v]=!S.checked[v];
+  if(a==="copy"){const t=shop(S.plan).map(x=>`${I[x.id][0]} — ${qty(x.id,x.g)}`).join("\n");
+    navigator.clipboard.writeText(t).then(()=>{$("cp").textContent="Скопійовано"},()=>{$("cp").textContent="Не вдалося скопіювати"});return}
+  if(STEPS.includes(view)&&view!=="budget")S.budget=null;
+  save();render();
+});
+$("back").onclick=()=>{if(view==="recipe"||view==="shop")return go("plan");const i=STEPS.indexOf(view);if(i>0)go(STEPS[i-1])};
+render();
+try{if("serviceWorker" in navigator&&location.protocol==="https:"&&!location.hostname.endsWith("claude.ai")&&!location.hostname.includes("claudeusercontent"))navigator.serviceWorker.register("sw.js").catch(()=>{})}catch(e){}
+}
+
+</script>
+</body>
+</html>
